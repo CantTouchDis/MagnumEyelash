@@ -1,4 +1,8 @@
+in float width[];
+
 layout (vertices = 2) out;
+
+out float hairW[];
 
 patch out vec4 before;
 patch out vec4 after;
@@ -9,9 +13,10 @@ void main()
     // one line
     gl_TessLevelOuter[0]=1;
     // points on segment
-    gl_TessLevelOuter[1]=20;
+    gl_TessLevelOuter[1]=10;
     before = gl_in[0].gl_Position;
     after = gl_in[3].gl_Position;
   }
+  hairW[gl_InvocationID] = width[gl_InvocationID + 1];
   gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID + 1].gl_Position;
 }

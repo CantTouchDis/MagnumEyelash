@@ -1,14 +1,15 @@
 #pragma once
 
 #include <Magnum/GL/AbstractShaderProgram.h>
+#include <Magnum/GL/Attribute.h>
 #include <Magnum/Math/Color.h>
 #include <Magnum/Math/Matrix4.h>
 
 class EyelashTessellationShader: public Magnum::GL::AbstractShaderProgram
 {
 public:
-  // typedef GL::Attribute<0, Vector2> Position;
-  // typedef GL::Attribute<1, Vector2> TextureCoordinates;
+  typedef Magnum::GL::Attribute<0, Magnum::Vector3> Position;
+  typedef Magnum::GL::Attribute<1, Magnum::Float> HairWidth;
   
   explicit EyelashTessellationShader();
   

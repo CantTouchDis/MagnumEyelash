@@ -1,5 +1,7 @@
 layout (isolines, equal_spacing) in;
 
+in float hairW[];
+
 patch in vec4 before;
 patch in vec4 after;
 
@@ -8,6 +10,7 @@ patch in vec4 after;
 
 
 out vec4 tangent;
+out float hairWidth;
 
 // https://en.wikipedia.org/wiki/Cubic_Hermite_spline
 // Catmull–Rom spline
@@ -41,5 +44,6 @@ void main()
   // gl_Position = projectionMatrix*transformationMatrix*pos;
   // tangent = projectionMatrix*transformationMatrix*vec4(tan.xyz, 0.0f);
   gl_Position = pos;
-  tangent = vec4(tan.xyz, 0.0f);
+  tangent = vec4(tan.xyz, 0);
+  hairWidth = mix(hairW[0], hairW[1], u);
 }
