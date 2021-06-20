@@ -12,10 +12,9 @@ git clone https://github.com/mosra/magnum-plugins.git
 ```
 Then create a build folder and proceed to build the project as a normal cmake project:
 ```
-mkdir build
-cd build
+mkdir -p build && cd build
 cmake ..
-make
+cmake --build .
 ```
 
 All the executables will land in the bin folder.
