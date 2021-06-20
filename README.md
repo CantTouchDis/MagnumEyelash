@@ -1,6 +1,10 @@
 # MagnumEyelash
 
-## Compiling the code
+
+## Dependencies
+Requirements:
+- corrade
+- magnum + SDL2
 
 To compile the code you first need `corrade` `magnum` and `magnum-plugins`. [Detailed description](https://doc.magnum.graphics/magnum/getting-started.html#getting-started-setup-subproject)
 
@@ -10,11 +14,12 @@ git clone https://github.com/mosra/corrade.git
 git clone https://github.com/mosra/magnum.git
 git clone https://github.com/mosra/magnum-plugins.git
 ```
-Then create a build folder and proceed to build the project as a normal cmake project:
+
+## Compiling the code
+
+Create a build folder and proceed to build the project as a normal cmake project:
 ```
 mkdir -p build && cd build
 cmake ..
 cmake --build .
 ```
-
-All the executables will land in the bin folder.
