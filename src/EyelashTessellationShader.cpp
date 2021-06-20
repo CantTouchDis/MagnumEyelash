@@ -24,6 +24,7 @@ EyelashTessellationShader::EyelashTessellationShader()
   tcs.addSource(rs.get("shaders/EyelashShader.tcs"));
   tes.addSource(rs.get("shaders/EyelashShader.tes"));
   gs.addSource(rs.get("shaders/EyelashShader.geom"));
+  // fs.addSource("#define shade_normal ");
   fs.addSource(rs.get("shaders/EyelashShader.frag"));
 
   CORRADE_INTERNAL_ASSERT_OUTPUT(GL::Shader::compile({vs, tcs, tes, gs, fs}));
@@ -32,7 +33,7 @@ EyelashTessellationShader::EyelashTessellationShader()
 
   CORRADE_INTERNAL_ASSERT_OUTPUT(link());
 
-  m_colorUniform = uniformLocation("color");
+  m_colorUniform = uniformLocation("hairColor");
   m_transformationMatrixUniform = uniformLocation("transformationMatrix");
   m_projectionMatrixUniform = uniformLocation("projectionMatrix");
 }

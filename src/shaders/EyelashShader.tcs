@@ -1,5 +1,9 @@
 in float width[];
 
+uniform mat4 transformationMatrix;
+uniform mat4 projectionMatrix;
+uniform float desiredEdges = 32;
+
 layout (vertices = 2) out;
 
 out float hairW[];
@@ -7,13 +11,30 @@ out float hairW[];
 patch out vec4 before;
 patch out vec4 after;
 
+// compute how big a sphere the size of width would be at the midpoint
+// https://developer.nvidia.com/content/dynamic-hardware-tessellation-basics
+float projectedSize(vec4 origin, float d)
+{
+  vec4 clipPos = projectionMatrix * transformationMatrix * origin;
+  return abs(d * projectionMatrix[1][1] / clipPos.w);
+}
+
+float calculateTessellationFactor(vec4 start, vec4 end)
+{
+  float d = distance(start, end);
+  vec4 midPoint = (start + end) / 2;
+  return max(1, desiredEdges * projectedSize(midPoint, d));
+}
+
+
 void main()
 {
   if(gl_InvocationID == 0) {
     // one line
     gl_TessLevelOuter[0]=1;
     // points on segment
-    gl_TessLevelOuter[1]=10;
+    // gl_TessLevelOuter[1]=30;
+    gl_TessLevelOuter[1]=calculateTessellationFactor(gl_in[1].gl_Position, gl_in[2].gl_Position);
     before = gl_in[0].gl_Position;
     after = gl_in[3].gl_Position;
   }
