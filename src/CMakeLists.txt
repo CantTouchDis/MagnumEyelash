@@ -11,28 +11,28 @@ set_directory_properties(PROPERTIES CORRADE_USE_PEDANTIC_FLAGS ON)
 
 corrade_add_resource(Eyelash_RESOURCES resources.conf)
 
-add_executable(MyApplication
-  MyApplication.cpp
-  EyelashShader.cpp
-  EyelashTessellationShader.cpp
-  ${Eyelash_RESOURCES})
-
-target_link_libraries(MyApplication PRIVATE
-    Corrade::Main
-    Magnum::Application
-    Magnum::GL
-    Magnum::Magnum
-    Magnum::MeshTools
-    Magnum::SceneGraph
-    Magnum::Shaders
-    Magnum::Trade)
-
-add_dependencies(MyApplication
-    Magnum::AnyImageImporter
-    Magnum::AnySceneImporter
-    Magnum::ObjImporter
-    MagnumPlugins::StbImageImporter
-    MagnumPlugins::TinyGltfImporter)
+#add_executable(MyApplication
+#  MyApplication.cpp
+#  EyelashShader.cpp
+#  EyelashTessellationShader.cpp
+#  ${Eyelash_RESOURCES})
+#
+#target_link_libraries(MyApplication PRIVATE
+#    Corrade::Main
+#    Magnum::Application
+#    Magnum::GL
+#    Magnum::Magnum
+#    Magnum::MeshTools
+#    Magnum::SceneGraph
+#    Magnum::Shaders
+#    Magnum::Trade)
+#
+#add_dependencies(MyApplication
+#    Magnum::AnyImageImporter
+#    Magnum::AnySceneImporter
+#    Magnum::ObjImporter
+#    MagnumPlugins::StbImageImporter
+#    MagnumPlugins::TinyGltfImporter)
 
 add_executable(EyelashVisualizer
   EyelashVisualizer.cpp
@@ -45,17 +45,18 @@ target_link_libraries(EyelashVisualizer PRIVATE
     Magnum::Application
     Magnum::GL
     Magnum::Magnum
-    Magnum::MeshTools
-    Magnum::SceneGraph
-    Magnum::Shaders
-    Magnum::Trade)
+    #    Magnum::MeshTools
+    #    Magnum::SceneGraph
+    Magnum::Shaders)
+    #    Magnum::Trade)
 
-add_dependencies(EyelashVisualizer
-    Magnum::AnyImageImporter
-    Magnum::AnySceneImporter
-    Magnum::ObjImporter
-    MagnumPlugins::StbImageImporter
-    MagnumPlugins::TinyGltfImporter)
+
+#add_dependencies(EyelashVisualizer
+#    Magnum::AnyImageImporter
+#    Magnum::AnySceneImporter
+#    Magnum::ObjImporter
+#    MagnumPlugins::StbImageImporter
+#    MagnumPlugins::TinyGltfImporter)
 
 
 # Make the executable a default target to build & run in Visual Studio
