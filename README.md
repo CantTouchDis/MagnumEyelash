@@ -28,3 +28,13 @@ cmake --build .
 ## Usage
 
 W,S,A,D to fly around the scene and mouse left click + drag to rotate.
+
+## Example
+![FirstHair](https://user-images.githubusercontent.com/5838555/122686787-6378ba00-d213-11eb-87c5-3ca4c84c6ef6.png)
+
+## TODO
+
+- add ui to switch uniforms in shaders
+- add ui to switch shaders (wireframe, normal, ect.)
+- nicer shading
+- *maybe* adaptive Geometry shader segment count
