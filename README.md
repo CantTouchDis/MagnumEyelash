@@ -23,3 +23,8 @@ mkdir -p build && cd build
 cmake ..
 cmake --build .
 ```
+
+
+## Usage
+
+W,S,A,D to fly around the scene and mouse left click + drag to rotate.
