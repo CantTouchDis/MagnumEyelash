@@ -62,16 +62,16 @@ EyelashVisializer::EyelashVisializer(const Arguments& arguments) : Platform::App
   MAGNUM_ASSERT_GL_VERSION_SUPPORTED(GL::Version::GL400);
 
   struct {
-    Vector2 position;
+    Vector3 position;
     Color3 color;
   } hair[] =
   {
-    {{0.0f, -1.0f}, 0xff0000_rgbf},
-    {{-0.1f, -0.8f}, 0x00ff00_rgbf},
-    {{0.3f, -0.8f}, 0x00ff00_rgbf},
-    {{0.2f, -0.2f}, 0x00ff00_rgbf},
-    {{0.6f,  0.2f}, 0x00ff00_rgbf},
-    {{0.3f,  1.0f}, 0x0000ff_rgbf}
+    {{0.0f, -1.0f, 0.0f}, 0xff0000_rgbf},
+    {{-0.1f, -0.8f, 0.0f}, 0x00ff00_rgbf},
+    {{0.3f, -0.8f, 0.2f}, 0x00ff00_rgbf},
+    {{0.2f, -0.2f, -0.2f}, 0x00ff00_rgbf},
+    {{0.6f,  0.2f, 0.0f}, 0x00ff00_rgbf},
+    {{0.3f,  1.0f, 0.0f}, 0x0000ff_rgbf}
   };
   UnsignedByte indices[] = 
   {
@@ -89,13 +89,13 @@ EyelashVisializer::EyelashVisializer(const Arguments& arguments) : Platform::App
   m_singleHair = GL::Mesh{};
   m_singleHair.setCount(Containers::arraySize(indices))
     .setPrimitive(GL::MeshPrimitive::Patches)
-    .addVertexBuffer(m_singleHairBuffer, 0, Shaders::GenericGL2D::Position{}, Shaders::GenericGL2D::Color3{})
+    .addVertexBuffer(m_singleHairBuffer, 0, Shaders::GenericGL3D::Position{}, Shaders::GenericGL2D::Color3{})
     .setIndexBuffer(std::move(indicesBuffer), 0, GL::MeshIndexType::UnsignedByte);
 
   m_singleHairLine = GL::Mesh{};
   m_singleHairLine.setCount(Containers::arraySize(hair))
     .setPrimitive(GL::MeshPrimitive::LineStrip)
-    .addVertexBuffer(m_singleHairBuffer, 0, Shaders::GenericGL2D::Position{}, Shaders::GenericGL2D::Color3{});
+    .addVertexBuffer(m_singleHairBuffer, 0, Shaders::GenericGL3D::Position{}, Shaders::GenericGL2D::Color3{});
 
   m_transformation =
     Matrix4::rotationX(0.0_degf)*Matrix4::rotationY(0.0_degf);
