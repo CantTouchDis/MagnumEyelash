@@ -13,6 +13,8 @@ Clone the following three repositories into this folder:
 git clone https://github.com/mosra/corrade.git
 git clone https://github.com/mosra/magnum.git
 git clone https://github.com/mosra/magnum-plugins.git
+git clone https://github.com/mosra/magnum-integration
+git clone -b v1.81 --depth 1  https://github.com/ocornut/imgui
 ```
 
 ## Compiling the code
