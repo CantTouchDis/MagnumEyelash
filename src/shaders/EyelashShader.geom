@@ -6,13 +6,15 @@ in float width_tes[];
 
 uniform mat4 transformationMatrix;
 uniform mat4 projectionMatrix;
-uniform int cylinderSegmentCount = 30;
+const int cylinderSegmentCount = 30;
 
 
 layout(triangle_strip, max_vertices = 128) out;
 
 out vec4 normal;
-
+#if defined(WIREFRAME)
+out vec3 bary;
+#endif
 
 // computes a vector perpendicular to the given direction
 vec3 compute_perpendicular_to_direction(vec3 direction)
@@ -44,9 +46,21 @@ void main()
     float v = sin(rad);
     vec4 normal_0 = vec4(u * circle_0_x + v * circle_0_y, 0);
     vec4 normal_1 = vec4(u * circle_1_x + v * circle_1_y, 0);
+#if defined(WIREFRAME)
+    int first = (i * 2) % 3;
+    int second = (i * 2 + 1) % 3;
+    vec3 baryCoord = vec3(0, 0, 0);
+    baryCoord[first] = 1.0f;
+    bary = baryCoord;
+#endif
     gl_Position = projectionMatrix * transformationMatrix * (gl_in[0].gl_Position + width_tes[0] * normal_0);
     normal = normal_0;
     EmitVertex();
+#if defined(WIREFRAME)
+    baryCoord = vec3(0);
+    baryCoord[second] = 1.0f;
+    bary = baryCoord;
+#endif
     gl_Position = projectionMatrix * transformationMatrix * (gl_in[1].gl_Position + width_tes[1] * normal_1);
     normal = normal_1;
     EmitVertex();
