@@ -1,12 +1,13 @@
-in float width[];
+in float width_vs[];
+
 
 uniform mat4 transformationMatrix;
 uniform mat4 projectionMatrix;
 uniform float desiredEdges = 32;
 
-layout (vertices = 2) out;
 
-out float hairW[];
+layout (vertices = 2) out;
+out float width_tcs[];
 
 patch out vec4 before;
 patch out vec4 after;
@@ -38,6 +39,6 @@ void main()
     before = gl_in[0].gl_Position;
     after = gl_in[3].gl_Position;
   }
-  hairW[gl_InvocationID] = width[gl_InvocationID + 1];
+  width_tcs[gl_InvocationID] = width_vs[gl_InvocationID + 1];
   gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID + 1].gl_Position;
 }

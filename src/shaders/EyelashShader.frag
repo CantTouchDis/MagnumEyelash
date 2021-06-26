@@ -4,7 +4,6 @@ uniform vec3 hairColor = vec3(1.0, 1.0, 1.0);
 in vec4 normal;
 out vec4 fragmentColor;
 
-
 const float refraction = 1.55f;
 
 void main()
