@@ -14,11 +14,13 @@ out vec4 fragmentColor;
 const float refraction = 1.55f;
 
 
+#if defined(WIREFRAME)
 float edgeFactor() {
   vec3 d = fwidth(bary);
   vec3 f = step(d * 1, bary);
   return min(min(f.x, f.y), f.z);
 }
+#endif
 
 void main()
 {
