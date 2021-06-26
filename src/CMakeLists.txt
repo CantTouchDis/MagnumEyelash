@@ -6,6 +6,7 @@ find_package(Magnum REQUIRED
     SceneGraph
     Trade
     Sdl2Application)
+find_package(MagnumIntegration REQUIRED ImGui)
 
 set_directory_properties(PROPERTIES CORRADE_USE_PEDANTIC_FLAGS ON)
 
@@ -47,7 +48,9 @@ target_link_libraries(EyelashVisualizer PRIVATE
     Magnum::Magnum
     #    Magnum::MeshTools
     #    Magnum::SceneGraph
-    Magnum::Shaders)
+    Magnum::Shaders
+    MagnumIntegration::ImGui
+    )
     #    Magnum::Trade)
 
 
