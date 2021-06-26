@@ -114,10 +114,11 @@ EyelashVisualizer::EyelashVisualizer(const Arguments& arguments) : Platform::App
     .setIndexBuffer(std::move(indicesBuffer), 0, GL::MeshIndexType::UnsignedByte);
 
   m_singleHairLine = GL::Mesh{};
-  m_singleHairLine.setCount(Containers::arraySize(hair))
+  m_singleHairLine.setCount(Containers::arraySize(hair) - 2)
     .setPrimitive(GL::MeshPrimitive::LineStrip)
     // 4 bytes are unused, cause they define the hair width.
-    .addVertexBuffer(m_singleHairBuffer, 0, Shaders::FlatGL3D::Position{}, 4);
+    // start at the second point (first is an helper control point)
+    .addVertexBuffer(m_singleHairBuffer, 4 * 4, Shaders::FlatGL3D::Position{}, 4);
 
   m_transformation =
     Matrix4::rotationX(0.0_degf)*Matrix4::rotationY(0.0_degf);
@@ -143,23 +144,32 @@ void EyelashVisualizer::drawEvent()
 {
   GL::defaultFramebuffer.clear(GL::FramebufferClear::Color|GL::FramebufferClear::Depth);
 
-      /* Enable text input, if needed */
-  if(ImGui::GetIO().WantTextInput && !isTextInputActive())
-      startTextInput();
-  else if(!ImGui::GetIO().WantTextInput && isTextInputActive())
-      stopTextInput();
-  float _floatValue;
   m_imgui.newFrame();
+  /* Enable text input, if needed */
+  if(ImGui::GetIO().WantTextInput && !isTextInputActive())
+    startTextInput();
+  else if(!ImGui::GetIO().WantTextInput && isTextInputActive())
+    stopTextInput();
+  float _floatValue;
   {
     ImGui::Text("Hello, world!");
-    ImGui::SliderFloat("Float", &_floatValue, 0.0f, 1.0f);
-    ImGui::ColorEdit3("Clear Color", m_hairColor.data());
-//     if(ImGui::Button("Test Window"))
-//         _showDemoWindow ^= true;
-//     if(ImGui::Button("Another Window"))
-//         _showAnotherWindow ^= true;
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-        1000.0/Double(ImGui::GetIO().Framerate), Double(ImGui::GetIO().Framerate));
+    if (ImGui::TreeNode("Scene"))
+    {
+
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Shader"))
+    {
+      ImGui::SliderFloat("Float", &_floatValue, 0.0f, 1.0f);
+      ImGui::ColorEdit3("Clear Color", m_hairColor.data());
+//       if(ImGui::Button("Test Window"))
+//           _showDemoWindow ^= true;
+//       if(ImGui::Button("Another Window"))
+//           _showAnotherWindow ^= true;
+      ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+          1000.0/Double(ImGui::GetIO().Framerate), Double(ImGui::GetIO().Framerate));
+      ImGui::TreePop();
+    }
   }
 
   Vector3 cameraDirection;
