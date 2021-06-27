@@ -1,4 +1,5 @@
 #include <Corrade/Utility/Arguments.h>
+#include <Corrade/Containers/ArrayViewStl.h>
 #include <Magnum/Platform/Sdl2Application.h>
 #include <Magnum/Shaders/GenericGL.h>
 #include <Magnum/GL/DefaultFramebuffer.h>
@@ -190,12 +191,14 @@ EyelashVisualizer::EyelashVisualizer(const Arguments& arguments) : Platform::App
 class ColoredDrawable: public SceneGraph::Drawable3D
 {
 public:
-  explicit ColoredDrawable(Object3D& object, Shaders::PhongGL& shader, GL::Mesh& mesh, const Color4& color, SceneGraph::DrawableGroup3D& group): SceneGraph::Drawable3D{object, &group}, m_shader(shader), m_mesh(mesh), m_color{color} {}
+  explicit ColoredDrawable(Object3D& object, Shaders::PhongGL& shader, std::vector<EyelashTessellationShader>& eyeLashShaders, size_t& currentShader, GL::Mesh& mesh, const Color4& color, SceneGraph::DrawableGroup3D& group): SceneGraph::Drawable3D{object, &group}, m_shader(shader), m_eyeLashShaders(eyeLashShaders), m_currentShader(currentShader), m_mesh(mesh), m_color{color} {}
 
 private:
   void draw(const Matrix4& transformationMatrix, SceneGraph::Camera3D& camera) override;
 
   Shaders::PhongGL& m_shader;
+  std::vector<EyelashTessellationShader>& m_eyeLashShaders;
+  size_t& m_currentShader;
   GL::Mesh& m_mesh;
   Color4 m_color;
 };
@@ -203,15 +206,26 @@ private:
 
 void ColoredDrawable::draw(const Matrix4& transformationMatrix, SceneGraph::Camera3D& camera)
 {
-  m_shader
-    .setDiffuseColor(m_color)
-     .setLightPositions({
-         {camera.cameraMatrix().transformPoint({-3.0f, 10.0f, 10.0f}), 0.0f}
-     })
-    .setTransformationMatrix(transformationMatrix)
-    .setNormalMatrix(transformationMatrix.normalMatrix())
-    .setProjectionMatrix(camera.projectionMatrix())
-    .draw(m_mesh);
+  if (m_mesh.primitive() == GL::MeshPrimitive::Patches)
+  {
+
+    GL::Renderer::setPatchVertexCount(4);
+    m_eyeLashShaders[m_currentShader]
+      .setTransformationMatrix(transformationMatrix).setProjectionMatrix(camera.projectionMatrix())
+      .draw(m_mesh);
+  }
+  else
+  {
+    m_shader
+      .setDiffuseColor(m_color)
+       .setLightPositions({
+           {camera.cameraMatrix().transformPoint({-3.0f, 10.0f, 10.0f}), 0.0f}
+       })
+      .setTransformationMatrix(transformationMatrix)
+      .setNormalMatrix(transformationMatrix.normalMatrix())
+      .setProjectionMatrix(camera.projectionMatrix())
+      .draw(m_mesh);
+  }
 }
 
 
@@ -243,7 +257,7 @@ void EyelashVisualizer::loadScene(const std::string& fileName)
   Containers::Array<Containers::Optional<Trade::PhongMaterialData>> materials{importer->materialCount()};
   for(UnsignedInt i = 0; i != importer->materialCount(); ++i)
   {
-    Debug{} << "Importing material" << i << importer->materialName(i).c_str();
+    // Debug{} << "Importing material" << i << importer->materialName(i).c_str();
 
     Containers::Optional<Trade::MaterialData> materialData = importer->material(i);
     if(!materialData || !(materialData->types() & Trade::MaterialType::Phong)) {
@@ -257,45 +271,74 @@ void EyelashVisualizer::loadScene(const std::string& fileName)
   m_meshes = Containers::Array<Containers::Optional<GL::Mesh>>{importer->meshCount()};
   for (UnsignedInt i = 0; i != importer->meshCount(); ++i)
   {
-    Debug{} << "Importing mesh" << i << importer->meshName(i).c_str();
+    // Debug{} << "Importing mesh" << i << importer->meshName(i).c_str();
 
     Containers::Optional<Trade::MeshData> meshData = importer->mesh(i);
     auto isMatchingPrimitive = meshData->primitive() == MeshPrimitive::Triangles || meshData->primitive() == MeshPrimitive::Lines;
     if (!meshData || (meshData->primitive() == MeshPrimitive::Triangles && !meshData->hasAttribute(Trade::MeshAttribute::Normal)) || !isMatchingPrimitive) {
-        Warning{} << meshData->primitive();
-        Warning{} << "Cannot load the mesh, skipping";
-        continue;
+      Warning{} << meshData->primitive();
+      Warning{} << "Cannot load the mesh, skipping";
+      continue;
     }
+    if (meshData->primitive() == MeshPrimitive::Lines)
+    {
+      GL::Mesh mesh{GL::MeshPrimitive::Patches};
+      GL::Buffer vertices;
+      vertices.setData(meshData->positions3DAsArray());
+      mesh.addVertexBuffer(std::move(vertices), 0, EyelashTessellationShader::Position{});
+      if (meshData->isIndexed())
+      {
+        GL::Buffer indexBuffer;
+        auto realIndices = meshData->indicesAsArray();
+        std::vector<UnsignedByte> patchIndices;
+        // lines are always two vertices. (assumption they are continuous)
+        for (size_t i = 0; i < realIndices.size() - 6; i += 2) 
+        {
+          patchIndices.push_back(realIndices[i]);
+          patchIndices.push_back(realIndices[i + 2]);
+          patchIndices.push_back(realIndices[i + 4]);
+          patchIndices.push_back(realIndices[i + 6]);
+        }
+        indexBuffer.setData(patchIndices);
+        mesh.setCount(patchIndices.size()).setIndexBuffer(std::move(indexBuffer), 0, GL::MeshIndexType::UnsignedByte);
+      }
+      m_meshes[i] = std::move(mesh);
 
-    /* Compile the mesh */
-    m_meshes[i] = MeshTools::compile(*meshData);
+      // m_meshes[i] = MeshTools::compile(*meshData);
+      // m_meshes[i]->setPrimitive(GL::MeshPrimitive::Patches);
+    }
+    else
+    {
+      /* Compile the mesh */
+      m_meshes[i] = MeshTools::compile(*meshData);
+    }
   }
   // add to scenes
   if (importer->defaultScene() != -1) {
-    Debug{} << "Adding default scene" << importer->sceneName(importer->defaultScene()).c_str();
+    // Debug{} << "Adding default scene" << importer->sceneName(importer->defaultScene()).c_str();
 
     Containers::Optional<Trade::SceneData> sceneData = importer->scene(importer->defaultScene());
     if(!sceneData) {
-        Error{} << "Cannot load scene, exiting";
-        return;
+      Error{} << "Cannot load scene, exiting";
+      return;
     }
 
     /* Recursively add all children */
     for(UnsignedInt objectId: sceneData->children3D())
-        addObject(*importer, materials, m_manipulator, objectId);
+      addObject(*importer, materials, m_manipulator, objectId);
 
     /* The format has no scene support, display just the first loaded mesh with
        a default material and be done with it */
-  } else if(!m_meshes.empty() && m_meshes[0])
-        new ColoredDrawable{m_manipulator, m_coloredShader, *m_meshes[0], 0xffffff_rgbf, m_drawables};
-
+  }
+  else if(!m_meshes.empty() && m_meshes[0])
+    new ColoredDrawable{m_manipulator, m_coloredShader, m_coloredShaders, m_currentShader, *m_meshes[0], 0xffffff_rgbf, m_drawables};
 
   m_sceneNames.push_back(fileName);
 }
 
 void EyelashVisualizer::addObject(Trade::AbstractImporter& importer, Containers::ArrayView<const Containers::Optional<Trade::PhongMaterialData>> materials, Object3D& parent, UnsignedInt i)
 {
-    Debug{} << "Importing object" << i << importer.object3DName(i).c_str();
+    // Debug{} << "Importing object" << i << importer.object3DName(i).c_str();
     Containers::Pointer<Trade::ObjectData3D> objectData = importer.object3D(i);
     if(!objectData)
     {
@@ -314,10 +357,10 @@ void EyelashVisualizer::addObject(Trade::AbstractImporter& importer, Containers:
       /* Material not available / not loaded, use a default material */
       if (materialId == -1 || !materials[materialId])
       {
-        new ColoredDrawable{*object, m_coloredShader, *m_meshes[objectData->instance()], 0xffffff_rgbf, m_drawables};
+        new ColoredDrawable{*object, m_coloredShader, m_coloredShaders, m_currentShader, *m_meshes[objectData->instance()], 0xffffff_rgbf, m_drawables};
       }
       else {
-        new ColoredDrawable{*object, m_coloredShader, *m_meshes[objectData->instance()], materials[materialId]->diffuseColor(), m_drawables};
+        new ColoredDrawable{*object, m_coloredShader, m_coloredShaders, m_currentShader, *m_meshes[objectData->instance()], materials[materialId]->diffuseColor(), m_drawables};
       }
     }
 
@@ -367,7 +410,9 @@ void EyelashVisualizer::drawEvent()
       {
         bool isSelected = m_currentScene == i;
         if (ImGui::Selectable(m_sceneNames[i].c_str(), isSelected))
+        {
           m_currentScene = i;
+        }
         if (isSelected)
           ImGui::SetItemDefaultFocus();
       }
@@ -432,6 +477,13 @@ void EyelashVisualizer::drawEvent()
   }
   else
   {
+    m_coloredShaders[m_currentShader]
+      .setColor(hairColor)
+      .setWireFrameColor(wireFrameColor)
+      .setCylinderSegmentCount(cylinderSegmentCount)
+      .setDesirededgeTessellation(desiredTessellarion);
+    // set the camera to the same value as we started with.
+    m_cameraObject.setTransformation(m_view.inverted());
     m_camera->draw(m_drawables);
   }
 
