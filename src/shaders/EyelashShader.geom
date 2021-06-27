@@ -1,6 +1,7 @@
 layout(lines) in;
 
 in vec4 tangent_tes[];
+in vec4 normal_tes[];
 in float width_tes[];
 
 
@@ -22,8 +23,8 @@ out vec3 bary;
 vec3 compute_perpendicular_to_direction(vec3 direction)
 {
   vec3 dir_norm = normalize(direction);
-  vec3 result = cross(dir_norm, vec3(0, 0, 1));
-  if (dot(result, result) == 0.0)
+  vec3 result = cross(dir_norm, vec3(1, 0, 0));
+  if (dot(result, result) <= 0.01)
   {
     result = cross(dir_norm, vec3(0, 1, 0));
   }
@@ -33,8 +34,12 @@ vec3 compute_perpendicular_to_direction(vec3 direction)
 
 void main()
 {
-  vec3 circle_0_x = compute_perpendicular_to_direction(tangent_tes[0].xyz);
-  vec3 circle_1_x = compute_perpendicular_to_direction(tangent_tes[1].xyz);
+  vec3 circle_0_x = normalize(normal_tes[0].xyz);
+  vec3 circle_1_x = normalize(normal_tes[1].xyz);
+  if (dot(circle_0_x, circle_1_x) < 0)
+  {
+    circle_0_x = -circle_0_x;
+  } 
 
   vec3 circle_0_y = normalize(cross(tangent_tes[0].xyz, circle_0_x));
   vec3 circle_1_y = normalize(cross(tangent_tes[1].xyz, circle_1_x));

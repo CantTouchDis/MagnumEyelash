@@ -12,6 +12,9 @@ out float width_tcs[];
 patch out vec4 before;
 patch out vec4 after;
 
+patch out vec4 normal1;
+patch out vec4 normal2;
+
 // compute how big a sphere the size of width would be at the midpoint
 // https://developer.nvidia.com/content/dynamic-hardware-tessellation-basics
 float projectedSize(vec4 origin, float d)
@@ -27,17 +30,25 @@ float calculateTessellationFactor(vec4 start, vec4 end)
   return max(1, desiredEdges * projectedSize(midPoint, d));
 }
 
-
 void main()
 {
   if(gl_InvocationID == 0) {
     // one line
-    gl_TessLevelOuter[0]=1;
+    gl_TessLevelOuter[0] = 1;
     // points on segment
-    // gl_TessLevelOuter[1]=30;
-    gl_TessLevelOuter[1]=calculateTessellationFactor(gl_in[1].gl_Position, gl_in[2].gl_Position);
+    gl_TessLevelOuter[1] = calculateTessellationFactor(gl_in[1].gl_Position, gl_in[2].gl_Position);
     before = gl_in[0].gl_Position;
     after = gl_in[3].gl_Position;
+    normal1 = vec4(cross(normalize(gl_in[1].gl_Position.xyz - gl_in[0].gl_Position.xyz), normalize(gl_in[1].gl_Position.xyz - gl_in[2].gl_Position.xyz)), 0.0f);
+    normal2 = vec4(cross(normalize(gl_in[2].gl_Position.xyz - gl_in[1].gl_Position.xyz), normalize(gl_in[2].gl_Position.xyz - gl_in[3].gl_Position.xyz)), 0.0f);
+    // if (dot(normal1, normal1) < 0.1)
+    // {
+    //   normal1 = normal2;
+    // }
+    // if (dot(normal2, normal2) < 0.1)
+    // {
+    //   normal2 = normal1;
+    // }
   }
   width_tcs[gl_InvocationID] = width_vs[gl_InvocationID + 1];
   gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID + 1].gl_Position;
