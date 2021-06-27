@@ -1,4 +1,5 @@
 find_package(Corrade REQUIRED Main)
+
 find_package(Magnum REQUIRED
     GL
     MeshTools
@@ -6,6 +7,7 @@ find_package(Magnum REQUIRED
     SceneGraph
     Trade
     Sdl2Application)
+
 find_package(MagnumIntegration REQUIRED ImGui)
 
 set_directory_properties(PROPERTIES CORRADE_USE_PEDANTIC_FLAGS ON)
@@ -39,28 +41,28 @@ add_executable(EyelashVisualizer
   EyelashVisualizer.cpp
   EyelashShader.cpp
   EyelashTessellationShader.cpp
-  ${Eyelash_RESOURCES})
+  ${Eyelash_RESOURCES}
+  )
 
 target_link_libraries(EyelashVisualizer PRIVATE
     Corrade::Main
     Magnum::Application
     Magnum::GL
     Magnum::Magnum
-    #    Magnum::MeshTools
-    #    Magnum::SceneGraph
+    Magnum::MeshTools
+    Magnum::SceneGraph
     Magnum::Shaders
     MagnumIntegration::ImGui
-    )
-    #    Magnum::Trade)
+    Magnum::Trade)
 
 
-#add_dependencies(EyelashVisualizer
-#    Magnum::AnyImageImporter
-#    Magnum::AnySceneImporter
-#    Magnum::ObjImporter
-#    MagnumPlugins::StbImageImporter
-#    MagnumPlugins::TinyGltfImporter)
+add_dependencies(EyelashVisualizer
+    Magnum::AnyImageImporter
+    Magnum::AnySceneImporter
+    Magnum::ObjImporter
+    MagnumPlugins::StbImageImporter
+    MagnumPlugins::TinyGltfImporter)
 
 
 # Make the executable a default target to build & run in Visual Studio
-set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT MyApplication)
+set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT EyelashVisualizer)
