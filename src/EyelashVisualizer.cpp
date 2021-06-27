@@ -35,15 +35,21 @@ private:
   // Imgui
   ImGuiIntegration::Context m_imgui{NoCreate};
 
+
+  std::vector<std::string> m_sceneNames;
+  size_t m_currentScene = 0;
+
+  // Single Hair scene.
   GL::Buffer m_singleHairBuffer{NoCreate};
   GL::Mesh m_singleHair{NoCreate};
   GL::Mesh m_singleHairLine{NoCreate};
-  EyelashTessellationShader m_coloredShader;
+
+  std::vector<EyelashTessellationShader> m_coloredShaders;
+  std::vector<std::string> m_shaderNames;
+  size_t m_currentShader = 0;
+
   Shaders::FlatGL3D m_flatColorShader;
   Matrix4 m_transformation, m_projection;
-
-  // Uniforms/Toggles
-  Color3 m_hairColor = 0xc7cf2f_rgbf;
 
   // Camera
   Vector2i m_previousMousePosition;  // used to rotate the view.
@@ -103,6 +109,7 @@ EyelashVisualizer::EyelashVisualizer(const Arguments& arguments) : Platform::App
     4, 5, 6, 7
   };
 
+  m_sceneNames.push_back("Single Hair");
   m_singleHairBuffer = GL::Buffer{};
   m_singleHairBuffer.setData(hair);
   GL::Buffer indicesBuffer;
@@ -127,6 +134,16 @@ EyelashVisualizer::EyelashVisualizer(const Arguments& arguments) : Platform::App
         35.0_degf, Vector2{windowSize()}.aspectRatio(), 0.01f, 100.0f);
 
   // setMinimalLoopPeriod(16);
+  
+  
+  m_coloredShaders.emplace_back(EyelashTessellationShader::DEFAULT);
+  m_shaderNames.push_back("default");
+  m_coloredShaders.emplace_back(EyelashTessellationShader::NORMAL);
+  m_shaderNames.push_back("normal");
+  m_coloredShaders.emplace_back(EyelashTessellationShader::WIREFRAME);
+  m_shaderNames.push_back("wireframe");
+  m_coloredShaders.emplace_back(EyelashTessellationShader::NORMAL | EyelashTessellationShader::WIREFRAME);
+  m_shaderNames.push_back("normal_wireframe");
 }
 
 
@@ -144,30 +161,65 @@ void EyelashVisualizer::drawEvent()
 {
   GL::defaultFramebuffer.clear(GL::FramebufferClear::Color|GL::FramebufferClear::Depth);
 
+
+  // uniforms
+  static Vector3 wireFrameColor = 0xFF0000_rgbf;
+  static Vector3 hairColor = 0xc7cf2f_rgbf;
+  static int cylinderSegmentCount = 30;
+  static int desiredTessellarion = 30;
+
   m_imgui.newFrame();
   /* Enable text input, if needed */
   if(ImGui::GetIO().WantTextInput && !isTextInputActive())
     startTextInput();
   else if(!ImGui::GetIO().WantTextInput && isTextInputActive())
     stopTextInput();
-  float _floatValue;
   {
-    ImGui::Text("Hello, world!");
-    if (ImGui::TreeNode("Scene"))
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+        1000.0/Double(ImGui::GetIO().Framerate), Double(ImGui::GetIO().Framerate));
+    ImGui::Text("Scene:");
+    ImGui::SameLine();
+    if (ImGui::BeginCombo("##Scene", m_sceneNames[m_currentScene].c_str()))
     {
-
-      ImGui::TreePop();
+      for (size_t i = 0; i < m_sceneNames.size(); i++)
+      {
+        bool isSelected = m_currentScene == i;
+        if (ImGui::Selectable(m_sceneNames[i].c_str(), isSelected))
+          m_currentScene = i;
+        if (isSelected)
+          ImGui::SetItemDefaultFocus();
+      }
+      ImGui::EndCombo();
     }
     if (ImGui::TreeNode("Shader"))
     {
-      ImGui::SliderFloat("Float", &_floatValue, 0.0f, 1.0f);
-      ImGui::ColorEdit3("Clear Color", m_hairColor.data());
+      ImGui::Text("Type:");
+      ImGui::SameLine();
+      if (ImGui::BeginCombo("##Shader", m_shaderNames[m_currentShader].c_str()))
+      {
+        for (size_t i = 0; i < m_shaderNames.size(); ++i)
+        {
+          bool isSelected = i == m_currentShader;
+          if (ImGui::Selectable(m_shaderNames[i].c_str(), isSelected))
+            m_currentShader = i;
+          if (isSelected)
+            ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+      }
+
+      ImGui::Text("HairColor:");
+      ImGui::ColorEdit3("##hairColor", hairColor.data());
+      ImGui::Text("WireFrameColor:");
+      ImGui::ColorEdit3("##wireframeColor", wireFrameColor.data());
+      ImGui::Text("GeometrySegments:");
+      ImGui::SliderInt("##cylinderSegments", &cylinderSegmentCount, 4, 32);
+      ImGui::Text("TessellationSegments:");
+      ImGui::SliderInt("##desiredTessellarion", &desiredTessellarion, 4, 32);
 //       if(ImGui::Button("Test Window"))
 //           _showDemoWindow ^= true;
 //       if(ImGui::Button("Another Window"))
 //           _showAnotherWindow ^= true;
-      ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-          1000.0/Double(ImGui::GetIO().Framerate), Double(ImGui::GetIO().Framerate));
       ImGui::TreePop();
     }
   }
@@ -185,7 +237,12 @@ void EyelashVisualizer::drawEvent()
 
   GL::Renderer::setPatchVertexCount(4);
 
-  m_coloredShader.setColor(m_hairColor).setTransformationMatrix(m_view*m_transformation).setProjectionMatrix(m_projection).draw(m_singleHair);
+  m_coloredShaders[m_currentShader]
+    .setColor(hairColor)
+    .setWireFrameColor(wireFrameColor)
+    .setCylinderSegmentCount(cylinderSegmentCount)
+    .setDesirededgeTessellation(desiredTessellarion)
+    .setTransformationMatrix(m_view*m_transformation).setProjectionMatrix(m_projection).draw(m_singleHair);
 
   m_flatColorShader.setColor(0xFF0000_rgbf).setTransformationProjectionMatrix(m_projection*m_view*m_transformation).draw(m_singleHairLine);
 

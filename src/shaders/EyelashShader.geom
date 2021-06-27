@@ -6,10 +6,12 @@ in float width_tes[];
 
 uniform mat4 transformationMatrix;
 uniform mat4 projectionMatrix;
-const int cylinderSegmentCount = 30;
+uniform int cylinderSegmentCount = 30;
 
 
-layout(triangle_strip, max_vertices = 128) out;
+// if cylinderSegmentCount is not a uniform we can go higher than 92. 
+// have to read into why changing it to an uniform reduces the number of vertices we can emit. 
+layout(triangle_strip, max_vertices = 92) out;
 
 out vec4 normal;
 #if defined(WIREFRAME)
@@ -37,7 +39,7 @@ void main()
   vec3 circle_0_y = normalize(cross(tangent_tes[0].xyz, circle_0_x));
   vec3 circle_1_y = normalize(cross(tangent_tes[1].xyz, circle_1_x));
 
-  int segment_count = max(4, cylinderSegmentCount);
+  int segment_count = max(4, min(cylinderSegmentCount, 40));
 
   for (int i = 0; i <= segment_count; i++)
   {

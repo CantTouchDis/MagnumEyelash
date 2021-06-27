@@ -24,7 +24,7 @@ float edgeFactor() {
 
 void main()
 {
-#ifdef shade_normal
+#if defined(SHADE_NORMAL)
   fragmentColor.rgb = normal.xyz * 0.5f + 0.5f;
 #else
   float cos = max(0, dot(normal.xyz, normalize(vec3(0, 1, 1))));
