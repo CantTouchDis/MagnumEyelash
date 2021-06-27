@@ -46,12 +46,12 @@ EyelashTessellationShader::EyelashTessellationShader(ShaderType type)
   if (!(type & NORMAL))
   {
     m_colorUniform = uniformLocation("hairColor");
+    m_lightPosUniform = uniformLocation("lightDir");
   }
   if (type & WIREFRAME)
   {
     m_wireFrameColorUniform = uniformLocation("wireFrameColor");
   }
-
   m_desiredEdgeTessellationUniform = uniformLocation("desiredEdges");
   m_cylinderSegmentCountUniform = uniformLocation("cylinderSegmentCount");
   m_transformationMatrixUniform = uniformLocation("transformationMatrix");

@@ -26,6 +26,7 @@
 #include <Magnum/Trade/SceneData.h>
 #include <Magnum/Trade/MeshObjectData3D.h>
 #include <Magnum/MeshTools/Compile.h>
+#include <Magnum/MeshTools/Interleave.h>
 
 #include "EyelashTessellationShader.h"
 
@@ -211,6 +212,8 @@ void ColoredDrawable::draw(const Matrix4& transformationMatrix, SceneGraph::Came
 
     GL::Renderer::setPatchVertexCount(4);
     m_eyeLashShaders[m_currentShader]
+      // directional
+      .setLightDirection({0, 1, 0})
       .setTransformationMatrix(transformationMatrix).setProjectionMatrix(camera.projectionMatrix())
       .draw(m_mesh);
   }
@@ -284,8 +287,14 @@ void EyelashVisualizer::loadScene(const std::string& fileName)
     {
       GL::Mesh mesh{GL::MeshPrimitive::Patches};
       GL::Buffer vertices;
-      vertices.setData(meshData->positions3DAsArray());
-      mesh.addVertexBuffer(std::move(vertices), 0, EyelashTessellationShader::Position{});
+      std::vector<float> hairWidths;
+      int numVertices = meshData->vertexCount();
+      for (int i = 0 ; i < numVertices; ++i)
+      {
+        hairWidths.push_back(0.002f * (1.0f - i / static_cast<float>(numVertices)));
+      }
+      vertices.setData(MeshTools::interleave(meshData->positions3DAsArray(), hairWidths));
+      mesh.addVertexBuffer(std::move(vertices), 0, EyelashTessellationShader::Position{}, EyelashTessellationShader::HairWidth{});
       if (meshData->isIndexed())
       {
         GL::Buffer indexBuffer;

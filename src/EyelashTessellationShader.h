@@ -49,6 +49,10 @@ public:
       setUniform(m_desiredEdgeTessellationUniform, static_cast<float>(split));
       return *this;
   }
+  EyelashTessellationShader& setLightDirection(const Magnum::Vector3& dir) {
+      setUniform(m_lightPosUniform, dir);
+      return *this;
+  }
 
 private:
   Magnum::Int m_colorUniform,
@@ -56,6 +60,7 @@ private:
     m_projectionMatrixUniform,
     m_wireFrameColorUniform,
     m_cylinderSegmentCountUniform,
+    m_lightPosUniform,
     m_desiredEdgeTessellationUniform;
 };
 

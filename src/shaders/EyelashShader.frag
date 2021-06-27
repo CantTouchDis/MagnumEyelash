@@ -3,6 +3,7 @@ in vec4 normal;
 in vec3 bary;
 #endif
 
+uniform vec3 lightDir = vec3(0.0, 1.0, 1.0);
 uniform vec3 hairColor = vec3(1.0, 1.0, 1.0);
 #if defined(WIREFRAME)
 uniform vec3 wireFrameColor = vec3(1.0f, 0.0f, 0.0f);
@@ -27,7 +28,7 @@ void main()
 #if defined(SHADE_NORMAL)
   fragmentColor.rgb = normal.xyz * 0.5f + 0.5f;
 #else
-  float cos = max(0, dot(normal.xyz, normalize(vec3(0, 1, 1))));
+  float cos = max(0, dot(normal.xyz, normalize(lightDir)));
   fragmentColor.rgb = hairColor * cos;
 #endif
 #if defined(WIREFRAME)
