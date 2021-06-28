@@ -16,7 +16,7 @@ layout(triangle_strip, max_vertices = 92) out;
 
 out vec4 normal;
 #if defined(WIREFRAME)
-out vec3 bary;
+noperspective out vec3 bary;
 #endif
 
 // computes a vector perpendicular to the given direction
@@ -34,12 +34,14 @@ vec3 compute_perpendicular_to_direction(vec3 direction)
 
 void main()
 {
-  vec3 circle_0_x = normalize(normal_tes[0].xyz);
-  vec3 circle_1_x = normalize(normal_tes[1].xyz);
-  if (dot(circle_0_x, circle_1_x) < 0)
-  {
-    circle_0_x = -circle_0_x;
-  } 
+  vec3 circle_0_x = normalize(compute_perpendicular_to_direction(tangent_tes[0].xyz));
+  vec3 circle_1_x = normalize(compute_perpendicular_to_direction(tangent_tes[1].xyz));
+  // vec3 circle_0_x = normalize(normal_tes[0].xyz);
+  // vec3 circle_1_x = normalize(normal_tes[1].xyz);
+  // if (dot(circle_0_x, circle_1_x) < 0)
+  // {
+  //   circle_0_x = -circle_0_x;
+  // } 
 
   vec3 circle_0_y = normalize(cross(tangent_tes[0].xyz, circle_0_x));
   vec3 circle_1_y = normalize(cross(tangent_tes[1].xyz, circle_1_x));

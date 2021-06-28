@@ -1,6 +1,6 @@
 in vec4 normal;
 #if defined(WIREFRAME)
-in vec3 bary;
+noperspective in vec3 bary;
 #endif
 
 uniform vec3 lightDir = vec3(0.0, 1.0, 1.0);
